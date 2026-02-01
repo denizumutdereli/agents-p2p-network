@@ -29,9 +29,11 @@ type Host struct {
 	ctx        context.Context
 	cancel     context.CancelFunc
 	msgHandler MessageHandler
+	localName  string
 
-	peersMu sync.RWMutex
-	peers   map[peer.ID]*PeerInfo
+	peersMu    sync.RWMutex
+	peers      map[peer.ID]*PeerInfo
+	agentNames map[string]peer.ID // Track agent names to detect duplicates
 }
 
 type PeerInfo struct {
@@ -73,12 +75,13 @@ func NewHost(ctx context.Context, port int, logger *zap.Logger) (*Host, error) {
 	}
 
 	p2pHost := &Host{
-		host:   h,
-		dht:    kadDHT,
-		logger: logger,
-		ctx:    ctx,
-		cancel: cancel,
-		peers:  make(map[peer.ID]*PeerInfo),
+		host:       h,
+		dht:        kadDHT,
+		logger:     logger,
+		ctx:        ctx,
+		cancel:     cancel,
+		peers:      make(map[peer.ID]*PeerInfo),
+		agentNames: make(map[string]peer.ID),
 	}
 
 	h.SetStreamHandler(protocol.ID(ProtocolID), p2pHost.handleStream)
@@ -114,6 +117,34 @@ func (h *Host) MultiAddrs() []string {
 
 func (h *Host) SetMessageHandler(handler MessageHandler) {
 	h.msgHandler = handler
+}
+
+func (h *Host) SetLocalName(name string) {
+	h.localName = name
+}
+
+func (h *Host) RegisterAgentName(name string, peerID peer.ID) error {
+	h.peersMu.Lock()
+	defer h.peersMu.Unlock()
+
+	if existingPeer, exists := h.agentNames[name]; exists {
+		if existingPeer != peerID {
+			return fmt.Errorf("agent name '%s' is already taken by peer %s", name, existingPeer.String()[:12])
+		}
+	}
+
+	h.agentNames[name] = peerID
+	return nil
+}
+
+func (h *Host) IsNameTaken(name string) (bool, peer.ID) {
+	h.peersMu.RLock()
+	defer h.peersMu.RUnlock()
+
+	if peerID, exists := h.agentNames[name]; exists {
+		return true, peerID
+	}
+	return false, ""
 }
 
 func (h *Host) StartMDNS() error {

@@ -20,6 +20,7 @@ const (
 	MessageTypeRegister MessageType = "register"
 	MessageTypePing     MessageType = "ping"
 	MessageTypePong     MessageType = "pong"
+	MessageTypeError    MessageType = "error"
 )
 
 type Message struct {

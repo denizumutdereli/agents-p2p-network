@@ -44,13 +44,13 @@ func runStart(cmd *cobra.Command, args []string) error {
 		BootstrapPeer: viper.GetString("bootstrap"),
 	}
 
-	if cfg.APIKey == "" {
-		return fmt.Errorf("OpenAI API key is required. Use --api-key flag or set P2P_API_KEY env var")
-	}
-
-	if cfg.AgentName == "" {
-		hostname, _ := os.Hostname()
-		cfg.AgentName = fmt.Sprintf("agent-%s", hostname)
+	// Validate configuration
+	if errs := cfg.Validate(); errs.HasErrors() {
+		fmt.Println("❌ Configuration errors:")
+		for _, e := range errs {
+			fmt.Printf("   • %s: %s\n", e.Field, e.Message)
+		}
+		return fmt.Errorf("invalid configuration")
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -54,6 +54,7 @@ func (a *Agent) Start(ctx context.Context) error {
 		return fmt.Errorf("failed to create P2P host: %w", err)
 	}
 
+	a.p2pHost.SetLocalName(a.config.AgentName)
 	a.p2pHost.SetMessageHandler(a.handleP2PMessage)
 
 	if err := a.p2pHost.StartMDNS(); err != nil {
@@ -112,6 +113,21 @@ func (a *Agent) handleRegister(from peer.ID, msg *p2p.Message) (*p2p.Message, er
 	var payload p2p.RegisterPayload
 	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
 		return nil, err
+	}
+
+	// Check for duplicate agent name
+	if err := a.p2pHost.RegisterAgentName(payload.AgentName, from); err != nil {
+		a.logger.Warn("Duplicate agent name rejected", 
+			zap.String("name", payload.AgentName), 
+			zap.String("peer_id", from.String()),
+			zap.Error(err))
+		
+		errPayload, _ := json.Marshal(map[string]string{"error": err.Error()})
+		return &p2p.Message{
+			Type:    p2p.MessageTypeError,
+			From:    a.p2pHost.ID().String(),
+			Payload: errPayload,
+		}, nil
 	}
 
 	a.agentRegistry[from.String()] = &AgentRecord{
