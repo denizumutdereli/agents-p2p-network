@@ -59,3 +59,11 @@ type AgentInfo struct {
 	Models    []string `json:"models"`
 	Connected bool     `json:"connected"`
 }
+
+type AnnounceRequest struct {
+	Type        string   `json:"type"`
+	Name        string   `json:"name"`
+	URL         string   `json:"url"`
+	Description string   `json:"description"`
+	Tags        []string `json:"tags"`
+}

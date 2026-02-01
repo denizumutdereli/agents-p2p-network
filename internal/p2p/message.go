@@ -21,7 +21,16 @@ const (
 	MessageTypePing     MessageType = "ping"
 	MessageTypePong     MessageType = "pong"
 	MessageTypeError    MessageType = "error"
+	MessageTypeAnnounce MessageType = "announce"
 )
+
+type AnnouncePayload struct {
+	Type        string `json:"type"`        // repo, tool, skill, resource
+	Name        string `json:"name"`        // e.g. "agents-p2p-network"
+	URL         string `json:"url"`         // e.g. "https://github.com/denizumutdereli/agents-p2p-network"
+	Description string `json:"description"` // What it does
+	Tags        []string `json:"tags"`      // e.g. ["p2p", "ai", "agents", "openai"]
+}
 
 type Message struct {
 	Type      MessageType     `json:"type"`

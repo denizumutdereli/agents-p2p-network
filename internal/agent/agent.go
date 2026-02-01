@@ -103,6 +103,8 @@ func (a *Agent) handleP2PMessage(ctx context.Context, from peer.ID, msg *p2p.Mes
 		return a.handleChatRequest(ctx, from, msg)
 	case p2p.MessageTypePing:
 		return a.handlePing(from, msg)
+	case p2p.MessageTypeAnnounce:
+		return a.handleAnnounce(from, msg)
 	default:
 		a.logger.Warn("Unknown message type", zap.String("type", string(msg.Type)))
 		return nil, nil
@@ -166,6 +168,25 @@ func (a *Agent) handleChatRequest(ctx context.Context, from peer.ID, msg *p2p.Me
 }
 
 func (a *Agent) handlePing(from peer.ID, msg *p2p.Message) (*p2p.Message, error) {
+	return &p2p.Message{
+		Type: p2p.MessageTypePong,
+		From: a.p2pHost.ID().String(),
+	}, nil
+}
+
+func (a *Agent) handleAnnounce(from peer.ID, msg *p2p.Message) (*p2p.Message, error) {
+	var payload p2p.AnnouncePayload
+	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
+		return nil, err
+	}
+
+	a.logger.Info("📢 Received announcement",
+		zap.String("from", from.String()[:12]),
+		zap.String("type", payload.Type),
+		zap.String("name", payload.Name),
+		zap.String("url", payload.URL),
+		zap.Strings("tags", payload.Tags))
+
 	return &p2p.Message{
 		Type: p2p.MessageTypePong,
 		From: a.p2pHost.ID().String(),
@@ -290,4 +311,28 @@ func (a *Agent) HandleSendToAgent(ctx context.Context, agentID string, req *api.
 	}
 
 	return &chatResp, nil
+}
+
+func (a *Agent) HandleAnnounce(ctx context.Context, req *api.AnnounceRequest) error {
+	payload := p2p.AnnouncePayload{
+		Type:        req.Type,
+		Name:        req.Name,
+		URL:         req.URL,
+		Description: req.Description,
+		Tags:        req.Tags,
+	}
+
+	payloadBytes, _ := json.Marshal(payload)
+	msg := &p2p.Message{
+		Type:    p2p.MessageTypeAnnounce,
+		From:    a.p2pHost.ID().String(),
+		Payload: payloadBytes,
+	}
+
+	a.logger.Info("Broadcasting announcement",
+		zap.String("type", req.Type),
+		zap.String("name", req.Name),
+		zap.String("url", req.URL))
+
+	return a.p2pHost.Broadcast(ctx, msg)
 }

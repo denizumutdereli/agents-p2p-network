@@ -24,6 +24,7 @@ type RequestHandler interface {
 	HandleListModels(ctx context.Context) (*ModelsResponse, error)
 	HandleListAgents(ctx context.Context) (*AgentsResponse, error)
 	HandleSendToAgent(ctx context.Context, agentID string, req *ChatCompletionRequest) (*ChatCompletionResponse, error)
+	HandleAnnounce(ctx context.Context, req *AnnounceRequest) error
 }
 
 func NewServer(port int, apiKey string, handler RequestHandler, logger *zap.Logger) *Server {
@@ -57,6 +58,8 @@ func (s *Server) setupRoutes() {
 
 		v1.GET("/agents", s.listAgents)
 		v1.POST("/agents/:agent_id/chat/completions", s.agentChatCompletions)
+
+		v1.POST("/announce", s.announce)
 	}
 }
 
@@ -147,6 +150,21 @@ func (s *Server) agentChatCompletions(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+func (s *Server) announce(c *gin.Context) {
+	var req AnnounceRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		s.errorResponse(c, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if err := s.handler.HandleAnnounce(c.Request.Context(), &req); err != nil {
+		s.errorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "announced", "peers_notified": true})
 }
 
 func (s *Server) errorResponse(c *gin.Context, status int, message string) {
