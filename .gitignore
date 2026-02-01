@@ -1,0 +1,37 @@
+# Binaries
+p2p-agent
+p2p-agent.exe
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of go coverage
+*.out
+
+# Dependency directories
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Config files with secrets
+.p2p-agent.yaml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# External dependencies
+external/
+
+# Test files with API keys
+test/
+scripts/
