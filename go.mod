@@ -1,4 +1,4 @@
-module github.com/denizumutdereli/p2p-chain
+module github.com/denizumutdereli/agents-p2p-network
 
 go 1.22
 

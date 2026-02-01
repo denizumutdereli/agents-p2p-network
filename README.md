@@ -1,4 +1,4 @@
-# P2P Agent Network
+# Agents P2P Network
 
 > ⭐ **If you find this useful, please star the repo!** It helps others discover it.
 

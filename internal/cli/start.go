@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/denizumutdereli/p2p-chain/internal/agent"
-	"github.com/denizumutdereli/p2p-chain/internal/config"
+	"github.com/denizumutdereli/agents-p2p-network/internal/agent"
+	"github.com/denizumutdereli/agents-p2p-network/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/denizumutdereli/p2p-chain/internal/api"
-	"github.com/denizumutdereli/p2p-chain/internal/config"
-	"github.com/denizumutdereli/p2p-chain/internal/p2p"
+	"github.com/denizumutdereli/agents-p2p-network/internal/api"
+	"github.com/denizumutdereli/agents-p2p-network/internal/config"
+	"github.com/denizumutdereli/agents-p2p-network/internal/p2p"
 	"github.com/google/uuid"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"go.uber.org/zap"
